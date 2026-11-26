@@ -1,23 +1,61 @@
-# spring-saml-okta
+# Chapter 2: Spring SAML With Okta
 
-Okta-focused SAML 2.0 **Service Provider** module for [`spring-boot-sso-learning`](../README.md).
+Okta-focused SAML 2.0 **Service Provider** on the same Spring Boot 3.5 / Java 21 / Spring Security SAML2 stack as Chapter 1, with Okta app-integration steps and metadata URL configuration.
 
-Originally imported from
-[`blaze-b/okta-spring-boot-saml-example`](https://github.com/blaze-b/okta-spring-boot-saml-example)
-(2020 Okta blog sample). It now uses **Java 21**, **Spring Boot 3.5**, and Spring Security’s
-built-in SAML2 support instead of the deprecated SAML DSL / OpenSAML 2 stack.
+Originally imported from [`blaze-b/okta-spring-boot-saml-example`](https://github.com/blaze-b/okta-spring-boot-saml-example) and modernized (no committed keystore or default passwords).
 
-## Prerequisites
+## What You Will Learn
 
-- JDK 21+
-- An [Okta Developer](https://developer.okta.com/) account
-- `openssl` to generate a local SP keypair
+- How to create a SAML 2.0 app integration in Okta for a local Spring SP
+- Which ACS and Audience values Okta expects for this module (port `8081`)
+- How `OKTA_METADATA_URL` feeds Spring’s asserting-party metadata
+- How this chapter differs from the generic [`spring-saml`](../spring-saml/README.md) module
 
-## Setup
+## Architecture / Flow
 
-### 1. Generate a local SP keypair (do not commit)
+```mermaid
+sequenceDiagram
+    actor User
+    participant Browser
+    participant SP as spring-saml-okta<br/>(port 8081)
+    participant Okta as Okta IdP
 
-From the **`spring-saml-okta` module directory**:
+    User->>Browser: Open http://localhost:8081
+    Browser->>SP: GET /
+    SP-->>Browser: Landing page
+    User->>Browser: Click Sign in with Okta
+    Browser->>SP: GET /saml2/authenticate/okta
+    SP-->>Browser: Redirect to Okta SSO
+    Browser->>Okta: AuthnRequest
+    User->>Okta: Sign in
+    Okta-->>Browser: SAML Response
+    Browser->>SP: POST /login/saml2/sso/okta
+    SP->>SP: Validate assertion using Okta metadata
+    SP-->>Browser: Redirect /home
+    Browser->>SP: GET /home
+    SP-->>Browser: NameID + attributes
+```
+
+## Configuration
+
+Defaults live in [`src/main/resources/application.yml`](src/main/resources/application.yml).
+
+| Property / Env | Default | Description |
+| --- | --- | --- |
+| `server.port` / `SERVER_PORT` | `8081` | HTTP port (avoids clash with Chapter 1) |
+| `OKTA_METADATA_URL` | (falls back below) | Okta “Identity Provider metadata” HTTPS URL |
+| `SAML_IDP_METADATA` | `file:local/saml/idp-metadata.xml` | Fallback metadata URI |
+| `SAML_SP_PRIVATE_KEY` | `file:local/saml/sp.key` | SP private key location |
+| `SAML_SP_CERTIFICATE` | `file:local/saml/sp.crt` | SP certificate location |
+| Entity ID / ACS | `{baseUrl}/saml2/metadata/{registrationId}` and `{baseUrl}/login/saml2/sso/{registrationId}` | Registration id `okta` |
+
+Prefer `OKTA_METADATA_URL` for live Okta tenants; use the file fallback for offline metadata XML.
+
+## How To Run Against A Test IdP (Okta)
+
+### 1. Generate A Local SP Keypair
+
+From the `spring-saml-okta` directory:
 
 ```bash
 mkdir -p local/saml
@@ -26,42 +64,35 @@ openssl req -new -x509 -key local/saml/sp.key -out local/saml/sp.crt -days 365 \
   -subj "/CN=localhost"
 ```
 
-Files under `local/saml/` are gitignored. There is **no** committed `keystore.jks` and no default passwords.
+Files under `local/saml/` are gitignored.
 
-### 2. Create a SAML 2.0 app in Okta
+### 2. Create A SAML 2.0 App In Okta
 
 1. Sign in to the [Okta Admin Console](https://developer.okta.com/).
-2. **Applications → Applications → Create App Integration**.
-3. Choose **SAML 2.0** and create the app.
-4. Configure SAML settings (default app port is `8081`):
+2. **Applications → Applications → Create App Integration** → **SAML 2.0**.
+3. Configure:
 
-| Setting | Value |
+| Okta Setting | Value |
 | --- | --- |
-| Single sign-on URL (ACS) | `http://localhost:8081/login/saml2/sso/okta` |
+| Single Sign-On URL (ACS) | `http://localhost:8081/login/saml2/sso/okta` |
 | Audience URI (SP Entity ID) | `http://localhost:8081/saml2/metadata/okta` |
-| Name ID format | EmailAddress (or Unspecified) |
+| Name ID format | EmailAddress or Unspecified |
 
-5. Optionally upload `local/saml/sp.crt` as the SP signing certificate.
-6. Finish the wizard, then open the app’s **Sign On** tab and copy the
-   **Identity Provider metadata** URL.
-7. Assign yourself (or a test user) to the application under **Assignments**.
+4. Optionally upload `local/saml/sp.crt` as the SP signing certificate.
+5. On the app **Sign On** tab, copy the **Identity Provider metadata** URL.
+6. Assign a user under **Assignments**.
 
-Historical screenshots from the original Okta tutorial live in
-[`docs/screenshots/`](docs/screenshots/) (UI labels may differ in today’s Okta console).
+Historical UI screenshots (labels may differ today) live in [`docs/screenshots/`](docs/screenshots/).
 
-### 3. Point the app at your Okta metadata
-
-Either export an env var:
+### 3. Point The App At Okta Metadata
 
 ```bash
 export OKTA_METADATA_URL='https://YOUR_OKTA_DOMAIN/app/exk.../sso/saml/metadata'
 ```
 
-Or download the metadata XML to `local/saml/idp-metadata.xml` (the default file path).
+Or download the XML to `local/saml/idp-metadata.xml`.
 
-### 4. Run
-
-From the **repo root**:
+### 4. Start The App
 
 ```bash
 ./mvnw -pl spring-saml-okta spring-boot:run
@@ -73,40 +104,50 @@ Open [http://localhost:8081](http://localhost:8081) → **Sign in with Okta**.
 | --- | --- |
 | `/` | Public landing page |
 | `/saml2/authenticate/okta` | Start SSO |
-| `/saml2/metadata/okta` | SP metadata (paste into Okta if needed) |
-| `/home` | Assertion attributes (authenticated) |
+| `/saml2/metadata/okta` | SP metadata |
+| `/home` | Assertion attributes |
 | `/logout` | Logout |
 
-## Configuration
-
-| Variable | Default | Description |
-| --- | --- | --- |
-| `SERVER_PORT` | `8081` | HTTP port |
-| `OKTA_METADATA_URL` | (falls back below) | Okta IdP metadata URL |
-| `SAML_IDP_METADATA` | `file:local/saml/idp-metadata.xml` | Fallback metadata URI |
-| `SAML_SP_PRIVATE_KEY` | `file:local/saml/sp.key` | SP private key |
-| `SAML_SP_CERTIFICATE` | `file:local/saml/sp.crt` | SP certificate |
-
-Example:
+### 5. Tests (No Live Okta Tenant)
 
 ```bash
-export OKTA_METADATA_URL='https://dev-123456.okta.com/app/exk.../sso/saml/metadata'
-./mvnw -pl spring-saml-okta spring-boot:run
+./mvnw -pl spring-saml-okta,sso-test-support test
 ```
 
-## Tests
+Throwaway keys are generated at runtime by [`sso-test-support`](../sso-test-support/).
 
-```bash
-./mvnw -pl spring-saml-okta test
-```
+## Key Classes
 
-Uses the `test` profile. Throwaway SP keys and mock IdP metadata are generated
-at test runtime by `sso-test-support` (nothing committed under `src/test/resources`).
+| Class | Role |
+| --- | --- |
+| [`OktaSamlApplication`](src/main/java/com/blazeb/sso/okta/OktaSamlApplication.java) | Spring Boot entry point |
+| [`SecurityConfig`](src/main/java/com/blazeb/sso/okta/config/SecurityConfig.java) | `saml2Login` / `saml2Logout` filter chain |
+| [`PageController`](src/main/java/com/blazeb/sso/okta/web/PageController.java) | `/` and `/home` |
+| [`OktaSamlApplicationTests`](src/test/java/com/blazeb/sso/okta/OktaSamlApplicationTests.java) | Context-load smoke tests |
 
-## How this differs from `spring-saml`
+## Compared With Chapter 1
 
-| | `spring-saml` | `spring-saml-okta` |
+| | Chapter 1 (`spring-saml`) | Chapter 2 (`spring-saml-okta`) |
 | --- | --- | --- |
-| Focus | Generic SAML2 SP | Okta app integration walkthrough |
+| Focus | Generic SAML2 SP | Okta app walkthrough |
 | Default port | `8080` | `8081` |
 | Metadata env | `SAML_IDP_METADATA` | Prefer `OKTA_METADATA_URL` |
+
+## Troubleshooting
+
+| Symptom | Things To Check |
+| --- | --- |
+| App fails to start | Missing `local/saml/sp.key` / `sp.crt`, or invalid `OKTA_METADATA_URL` |
+| Okta “Invalid ACS URL” | Must be `http://localhost:8081/login/saml2/sso/okta` (port **8081**) |
+| Audience mismatch | Entity ID must be `http://localhost:8081/saml2/metadata/okta` |
+| User cannot sign in | Assign the user to the Okta app |
+| Works in Chapter 1 but not here | Confirm you did not paste Chapter 1’s port `8080` values into this Okta app |
+
+## Navigation
+
+| | |
+| --- | --- |
+| Previous | [Chapter 1: Spring SAML](../spring-saml/README.md) |
+| Next | — (more chapters planned) |
+| Overview | [Spring Boot SSO Learning](../README.md) |
+| Basics | [Chapter 0: SSO And SAML Basics](../docs/chapter-0-sso-and-saml-basics.md) |
