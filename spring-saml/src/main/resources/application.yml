@@ -1,0 +1,32 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: spring-saml
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          # Registration id appears in login/metadata URLs:
+          #   /saml2/authenticate/okta
+          #   /saml2/metadata/okta
+          okta:
+            entity-id: "{baseUrl}/saml2/metadata/{registrationId}"
+            acs:
+              location: "{baseUrl}/login/saml2/sso/{registrationId}"
+            signing:
+              credentials:
+                - private-key-location: ${SAML_SP_PRIVATE_KEY:file:local/saml/sp.key}
+                  certificate-location: ${SAML_SP_CERTIFICATE:file:local/saml/sp.crt}
+            singlelogout:
+              binding: REDIRECT
+              url: "{baseUrl}/logout/saml2/slo"
+            assertingparty:
+              # Point at your IdP metadata (Okta, Keycloak, SimpleSAMLphp, etc.)
+              metadata-uri: ${SAML_IDP_METADATA:file:local/saml/idp-metadata.xml}
+
+logging:
+  level:
+    org.springframework.security: INFO
+    org.springframework.security.saml2: DEBUG

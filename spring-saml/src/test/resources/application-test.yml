@@ -1,0 +1,17 @@
+spring:
+  security:
+    saml2:
+      relyingparty:
+        registration:
+          okta:
+            signing:
+              credentials:
+                - private-key-location: classpath:saml/sp.key
+                  certificate-location: classpath:saml/sp.crt
+            assertingparty:
+              metadata-uri: classpath:saml/idp-metadata.xml
+
+logging:
+  level:
+    org.springframework.security: WARN
+    org.springframework.security.saml2: WARN
