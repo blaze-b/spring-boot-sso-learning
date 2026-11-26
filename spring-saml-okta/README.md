@@ -1,115 +1,112 @@
-# Spring Boot, SAML, and Okta
+# spring-saml-okta
 
-A Spring Boot example app that shows how to implement single sign-on (SSO) with Spring Security's SAML DSL and Okta.
+Okta-focused SAML 2.0 **Service Provider** module for [`spring-boot-sso-learning`](../README.md).
 
-Please read [Get Started with Spring Boot, SAML, and Okta](https://developer.okta.com/blog/2017/03/16/spring-boot-saml) to see how this app was created.
+Originally imported from
+[`blaze-b/okta-spring-boot-saml-example`](https://github.com/blaze-b/okta-spring-boot-saml-example)
+(2020 Okta blog sample). It now uses **Java 21**, **Spring Boot 3.5**, and Spring Security’s
+built-in SAML2 support instead of the deprecated SAML DSL / OpenSAML 2 stack.
 
-**Prerequisites:** [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
+## Prerequisites
 
-> [Okta](https://developer.okta.com/) has Authentication and User Management APIs that reduce development time with instant-on, scalable user infrastructure. Okta's intuitive API and expert support make it easy for developers to authenticate, manage and secure users and roles in any application.
+- JDK 21+
+- An [Okta Developer](https://developer.okta.com/) account
+- `openssl` to generate a local SP keypair
 
-* [Getting Started](#getting-started)
-* [Links](#links)
-* [Help](#help)
-* [License](#license)
+## Setup
 
-## Getting Started
+### 1. Generate a local SP keypair (do not commit)
 
-To install this example application, run the following commands:
+From the **`spring-saml-okta` module directory**:
 
 ```bash
-git clone https://github.com/oktadeveloper/okta-spring-boot-saml-example.git
-cd okta-spring-boot-saml-example
+mkdir -p local/saml
+openssl genrsa -out local/saml/sp.key 2048
+openssl req -new -x509 -key local/saml/sp.key -out local/saml/sp.crt -days 365 \
+  -subj "/CN=localhost"
 ```
 
-This will get a copy of the project installed locally. To install all of its dependencies and start the app, run:
- 
+Files under `local/saml/` are gitignored. There is **no** committed `keystore.jks` and no default passwords.
+
+### 2. Create a SAML 2.0 app in Okta
+
+1. Sign in to the [Okta Admin Console](https://developer.okta.com/).
+2. **Applications → Applications → Create App Integration**.
+3. Choose **SAML 2.0** and create the app.
+4. Configure SAML settings (default app port is `8081`):
+
+| Setting | Value |
+| --- | --- |
+| Single sign-on URL (ACS) | `http://localhost:8081/login/saml2/sso/okta` |
+| Audience URI (SP Entity ID) | `http://localhost:8081/saml2/metadata/okta` |
+| Name ID format | EmailAddress (or Unspecified) |
+
+5. Optionally upload `local/saml/sp.crt` as the SP signing certificate.
+6. Finish the wizard, then open the app’s **Sign On** tab and copy the
+   **Identity Provider metadata** URL.
+7. Assign yourself (or a test user) to the application under **Assignments**.
+
+Historical screenshots from the original Okta tutorial live in
+[`docs/screenshots/`](docs/screenshots/) (UI labels may differ in today’s Okta console).
+
+### 3. Point the app at your Okta metadata
+
+Either export an env var:
+
 ```bash
-./mvnw spring-boot:run
+export OKTA_METADATA_URL='https://YOUR_OKTA_DOMAIN/app/exk.../sso/saml/metadata'
 ```
 
-### Create a SAML App in Okta
+Or download the metadata XML to `local/saml/idp-metadata.xml` (the default file path).
 
-The first thing you'll need to do is create an Okta account at [okta.com/integrate/signup](https://www.okta.com/integrate/signup/). After activating your account, log in to it. If you just created an account, you'll see a screen similar to the one below.
+### 4. Run
 
-<img src="static/okta-dev-console.png" alt="Okta Dev Console" width="800"/>
- 
-Click on **< > Developer Console** in the top-left corner and switch to the Classic UI. If you see a screen like the following, you're good to go! The reason you need to use the Classic UI for this tutorial is because we haven't yet added SAML support to the [Developer Console](/blog/2017/09/25/all-new-developer-console).
+From the **repo root**:
 
-<img src="static/okta-classic-ui.png" alt="Okta Classic UI" width="800"/>
-
-Click **Add Applications** in the top right to continue. This will bring you to a screen with a **Create New App** green button on the left.
-
-<img src="static/create-new-app.png" alt="Create New App" width="800"/>
-
-Click the button and choose **Web** for the platform and **SAML 2.0** for the sign on method.
-
-<img src="static/new-app-saml-2.0.png" alt="New App with SAML 2.0" width="700"/>
-
-Click the **Create** button. The next screen will prompt you for an application name. I used "Spring SAML”, but any name will work.
-
-<img src="static/app-name.png" alt="Enter App name" width="800"/>
-
-Click the **Next** button. This brings you to the second step, configuring SAML. Enter the following values:
-
-* Single sign on URL: `https://localhost:8443/saml/SSO`
-* Audience URI: `https://localhost:8443/saml/metadata`
-
-<img src="static/saml-integration.png" alt="SAML Integration" width="800"/>
-
-Scroll to the bottom of the form and click **Next**. This will bring you to the third step, feedback. Choose "I'm an Okta customer adding an internal app” and optionally select the App type.
-
-<img src="static/customer-or-partner.png" alt="Customer or Partner" width="800"/>
-
-Click the **Finish** button to continue. This will bring you to the application's "Sign On” tab which has a section with a link to your applications metadata in a yellow box. Copy the **Identity Provider metadata** link as you'll need it to configure your Spring Boot application.
-
-<img src="static/saml-metadata.png" alt="SAML Metadata" width="800"/>
-
-The final setup step you'll need is to assign people to the application. Click on the **Assignments** tab and the **Assign** > **Assign to People** button. You'll see a list of people with your account in it.
-
-<img src="static/assign-people.png" alt="Assign People" width="600"/>
-
-Click the **Assign** button, accept the default username (your email), and click the **Done** button.
-
-Update `src/main/resources/application.properties`, to have the `metadata-url` for the app you just created. Make sure to use the "Identity Provider metadata" value you copied earlier (hint: you can find it again under the "Sign On” tab in your Okta application).
-
-```properties
-server.port = 8443
-server.ssl.enabled = true
-server.ssl.key-alias = spring
-server.ssl.key-store = classpath:saml/keystore.jks
-server.ssl.key-store-password = secret
-
-security.saml2.metadata-url = <your metadata url>
+```bash
+./mvnw -pl spring-saml-okta spring-boot:run
 ```
 
-### Run the App and Login with Okta
+Open [http://localhost:8081](http://localhost:8081) → **Sign in with Okta**.
 
-Start the app using your IDE or `mvn spring-boot:run` and navigate to `https://localhost:8443`. If you're using Chrome, you'll likely see a privacy error.
+| Endpoint | Purpose |
+| --- | --- |
+| `/` | Public landing page |
+| `/saml2/authenticate/okta` | Start SSO |
+| `/saml2/metadata/okta` | SP metadata (paste into Okta if needed) |
+| `/home` | Assertion attributes (authenticated) |
+| `/logout` | Logout |
 
-<img src="static/connection-not-private.png" alt="Connection Not Private" width="800"/>
+## Configuration
 
-Click the "ADVANCED" link at the bottom. Then click the "proceed to localhost (unsafe)” link.
+| Variable | Default | Description |
+| --- | --- | --- |
+| `SERVER_PORT` | `8081` | HTTP port |
+| `OKTA_METADATA_URL` | (falls back below) | Okta IdP metadata URL |
+| `SAML_IDP_METADATA` | `file:local/saml/idp-metadata.xml` | Fallback metadata URI |
+| `SAML_SP_PRIVATE_KEY` | `file:local/saml/sp.key` | SP private key |
+| `SAML_SP_CERTIFICATE` | `file:local/saml/sp.crt` | SP certificate |
 
-<img src="static/connection-not-private-proceed.png" alt="Proceed to localhost" width="800"/>
+Example:
 
-Next, you'll be redirected to Okta to sign in and redirected back to your app. If you're already logged in, you won't see anything from Okta. If you sign out from Okta, you'll see a login screen such as the one below.
+```bash
+export OKTA_METADATA_URL='https://dev-123456.okta.com/app/exk.../sso/saml/metadata'
+./mvnw -pl spring-saml-okta spring-boot:run
+```
 
-<img src="static/okta-login.png" alt="Okta Login" width="800"/>
+## Tests
 
-After you've logged in, you should see a screen like the one below.
+```bash
+./mvnw -pl spring-saml-okta test
+```
 
-<img src="static/hello-saml.png" alt="Hello SAML" width="800"/>
+Uses the `test` profile with classpath fixtures under `src/test/resources/saml/`
+(throwaway keypair + mock IdP metadata) so CI does not need a live Okta tenant.
 
-## Links
+## How this differs from `spring-saml`
 
-This example uses [Spring Security SAML DSL](https://github.com/spring-projects/spring-security-saml-dsl) to integrate with Okta. Kudos to the project's [spring-security-saml-dsl-sample for its instructions](https://github.com/spring-projects/spring-security-saml-dsl/blob/master/samples/spring-security-saml-dsl-sample/README.md).
-
-## Help
-
-Please post any questions as comments on the [blog post](http://developer.okta.com/blog/2017/03/16/spring-boot-saml), or visit our [Okta Developer Forums](https://devforum.okta.com/). You can also email developers@okta.com if would like to create a support ticket.
-
-## License
-
-Apache 2.0, see [LICENSE](LICENSE).
-
+| | `spring-saml` | `spring-saml-okta` |
+| --- | --- | --- |
+| Focus | Generic SAML2 SP | Okta app integration walkthrough |
+| Default port | `8080` | `8081` |
+| Metadata env | `SAML_IDP_METADATA` | Prefer `OKTA_METADATA_URL` |

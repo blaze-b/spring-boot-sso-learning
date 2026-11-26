@@ -21,7 +21,8 @@
 
     <modules>
         <module>spring-saml</module>
-        <!-- Future modules: spring-oidc, spring-okta, spring-keycloak, ... -->
+        <module>spring-saml-okta</module>
+        <!-- Future modules: spring-oidc, spring-keycloak, ... -->
     </modules>
 
     <properties>

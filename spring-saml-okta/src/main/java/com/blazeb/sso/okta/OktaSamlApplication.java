@@ -1,12 +1,12 @@
-package com.example.demo;
+package com.blazeb.sso.okta;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DemoApplication {
+public class OktaSamlApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(OktaSamlApplication.class, args);
     }
 }
