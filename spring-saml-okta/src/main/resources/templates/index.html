@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>spring-saml-okta</title>
+    <style>
+        :root {
+            --bg: #f6f8fb;
+            --ink: #1b2430;
+            --accent: #1662dd;
+            --card: #ffffff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", system-ui, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top right, #cfe0ff 0%, transparent 40%),
+                linear-gradient(180deg, #eaf0f8 0%, var(--bg) 100%);
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 2rem;
+        }
+        main {
+            width: min(40rem, 100%);
+            background: var(--card);
+            border: 1px solid #d5dde8;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 12px 30px rgba(27, 36, 48, 0.08);
+        }
+        h1 { margin-top: 0; font-size: 1.75rem; }
+        p { line-height: 1.5; color: #445164; }
+        a.button {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.7rem 1.1rem;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        code { background: #eef3f9; padding: 0.1rem 0.35rem; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>spring-saml-okta</h1>
+    <p>Okta-focused SAML 2.0 <strong>Service Provider</strong> from
+        <code>spring-boot-sso-learning</code>.</p>
+    <div sec:authorize="!isAuthenticated()">
+        <p>Start SSO with your Okta registration (<code>okta</code>):</p>
+        <a class="button" th:href="@{/saml2/authenticate/okta}">Sign in with Okta</a>
+    </div>
+    <div sec:authorize="isAuthenticated()">
+        <p>You are signed in.</p>
+        <a class="button" th:href="@{/home}">Go to home</a>
+    </div>
+</main>
+</body>
+</html>

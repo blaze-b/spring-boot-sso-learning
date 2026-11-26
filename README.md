@@ -8,9 +8,9 @@ Each module is a small, runnable showcase of one SSO approach. Shared Java / Spr
 
 | Module | Status | What it demonstrates |
 | --- | --- | --- |
-| [`spring-saml`](spring-saml/) | Ready | SAML 2.0 Service Provider using Spring Security’s built-in SAML2 support |
+| [`spring-saml`](spring-saml/) | Ready | Generic SAML 2.0 Service Provider using Spring Security’s built-in SAML2 support |
+| [`spring-saml-okta`](spring-saml-okta/) | Ready | Okta-focused SAML 2.0 SP (imported from `okta-spring-boot-saml-example`, modernized) |
 | `spring-oidc` | Planned | OAuth2 / OpenID Connect login |
-| `spring-okta` | Planned | Okta-focused examples |
 | `spring-keycloak` | Planned | Keycloak-focused examples |
 
 ## Prerequisites
@@ -26,10 +26,14 @@ Each module is a small, runnable showcase of one SSO approach. Shared Java / Spr
 
 ## Run a module
 
-See the module README for setup (keys, IdP metadata, env vars). Example for SAML:
+See each module README for setup (keys, IdP metadata, env vars).
 
 ```bash
+# Generic SAML SP (port 8080)
 ./mvnw -pl spring-saml spring-boot:run
+
+# Okta-focused SAML SP (port 8081)
+./mvnw -pl spring-saml-okta spring-boot:run
 ```
 
 ## Project layout
@@ -41,12 +45,13 @@ spring-boot-sso-learning/          # aggregator / parent POM
 ├── LICENSE
 ├── .github/workflows/ci.yml
 ├── mvnw
-└── spring-saml/                   # SAML 2.0 SP sample
-    ├── pom.xml
-    ├── README.md
-    ├── local/saml/                # gitignored developer credentials
-    └── src/
+├── sso-test-support/              # generates throwaway SAML keys for tests
+├── spring-saml/                   # generic SAML 2.0 SP
+└── spring-saml-okta/              # Okta SAML 2.0 SP
 ```
+
+Private keys and certificates are never committed (including under `src/test`).
+Tests generate throwaway material at runtime via `sso-test-support`.
 
 ## License
 

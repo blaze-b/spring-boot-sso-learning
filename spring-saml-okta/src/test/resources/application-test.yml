@@ -1,0 +1,4 @@
+logging:
+  level:
+    org.springframework.security: WARN
+    org.springframework.security.saml2: WARN

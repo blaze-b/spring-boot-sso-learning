@@ -91,4 +91,5 @@ From the repo root:
 ./mvnw -pl spring-saml test
 ```
 
-The `test` profile uses classpath fixtures under `src/test/resources/saml/` (throwaway keypair + mock IdP metadata), so CI does not need a live IdP.
+Uses the `test` profile. Throwaway SP keys and mock IdP metadata are generated
+at test runtime by `sso-test-support` (nothing committed under `src/test/resources`).
