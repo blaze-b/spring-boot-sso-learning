@@ -22,7 +22,7 @@ jobs:
       # Scan the working tree only (not git history). Historical test-key
       # commits are already removed from HEAD; we do not rewrite history.
       - name: Gitleaks (working tree)
-        run: gitleaks detect --source . --no-git --redact -v
+        run: gitleaks detect --source . --no-git --redact -v --config .gitleaks.toml
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
