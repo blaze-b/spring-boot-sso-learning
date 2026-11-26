@@ -1,0 +1,12 @@
+# Scan the working tree for secrets. Build output and local developer
+# credentials are excluded; tests generate throwaway keys at runtime.
+title = "spring-boot-sso-learning"
+
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''(^|/)target/''',
+  '''(^|/)local/saml/''',
+]
