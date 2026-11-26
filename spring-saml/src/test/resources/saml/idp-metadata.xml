@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata"
+                     entityID="http://localhost:8080/mock-idp">
+  <md:IDPSSODescriptor WantAuthnRequestsSigned="false"
+                       protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+        <ds:X509Data>
+          <ds:X509Certificate>MIIDBzCCAe+gAwIBAgIUFwDTNm1lOkn60367gpaYDp6TslswDQYJKoZIhvcNAQELBQAwEzERMA8GA1UEAwwIbW9jay1pZHAwHhcNMjYxMTI2MTAxOTU0WhcNMzYxMTIzMTAxOTU0WjATMREwDwYDVQQDDAhtb2NrLWlkcDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANoc5fM8NkGpSO/8gnWwR9CovMwvvZZY8zOK/pRa82bqIraRTyQXbKdNxcwsp2of7gos9Lgd3Kit8tkJBLrOzBgyHbZ32pfSfjbxC0zYaXybBLecB38WcLI+xVdmvqPphtj0xztAB3FQZzO1tNbUUESYEJmGq1WEJv/1o/rjWtSM9S45sMenTlCKiHU9wTaMMUQ6POjHM/Ja2bCBxwha7kX4E2aDjK5gPzZzvLFJaEkk28t0n1tDXr4nA/jGIEySJLxVZb0IEWj5PoveGm6s8ULfaujRe/x9PdW/XZaRvEnoiRM2W4+I21lSueJjEtzI799cMi+JAsdYYZHAfb7PQ+UCAwEAAaNTMFEwHQYDVR0OBBYEFFnwtvcRwPn/dii1yBIEDSfQeW4DMB8GA1UdIwQYMBaAFFnwtvcRwPn/dii1yBIEDSfQeW4DMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBACl/DbibS8T0W0mS6XMm2aqPiHOUtJqZz8snoDCTCtVAAzZMTVk9fGvvRu//gdsoxbxperx4w2ZuStXFzJby0xjdaTuxy4ExCLKZ+YwpSoA5K6AnUTD7uxdnSWbfBgO9l56oESJhL/dyfeBVyi1lXizT7Ip6eEnkPhPfduRg8YjgQUKGUdi/SiaXvORaMTX+pMABGmN5HJpZqSdN4GbbUoEqNKwG8MXxoHpUpUpx2fPVbuIFKP7jl8R6BP84L5DRGWClf5IS5PY98+RCfhkSqu5wgL2rSpUv5hALgcnjaYXw4AlQRLlfcHgXHKStkQn8YtM9XDjmhP5wZ8HspBlp8qg=</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</md:NameIDFormat>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                            Location="http://localhost:8080/mock-idp/sso"/>
+    <md:SingleSignOnService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                            Location="http://localhost:8080/mock-idp/sso"/>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+                            Location="http://localhost:8080/mock-idp/slo"/>
+  </md:IDPSSODescriptor>
+</md:EntityDescriptor>

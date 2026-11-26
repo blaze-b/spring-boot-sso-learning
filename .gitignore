@@ -33,12 +33,21 @@ build/
 # Application generated files
 *.log
 *.log.gz
-# Local SAML SP private-key material — generate locally, never commit
-# (placed after !**/src/main/** so these patterns still apply)
+
+# Local developer SAML material (never commit)
+**/local/saml/**
+!**/local/saml/.gitkeep
+
+# Private-key / keystore patterns (after !**/src/main/** so they still apply)
 *.key
 *.key.der
 *.pem
 *.p12
 *.jks
 *.pfx
-src/main/resources/saml/localhost.cert
+*.crt
+**/src/main/resources/saml/localhost.cert
+
+# Allow committed test fixtures only
+!**/src/test/resources/saml/
+!**/src/test/resources/saml/**
