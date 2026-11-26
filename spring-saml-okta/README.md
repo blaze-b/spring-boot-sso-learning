@@ -100,8 +100,8 @@ export OKTA_METADATA_URL='https://dev-123456.okta.com/app/exk.../sso/saml/metada
 ./mvnw -pl spring-saml-okta test
 ```
 
-Uses the `test` profile with classpath fixtures under `src/test/resources/saml/`
-(throwaway keypair + mock IdP metadata) so CI does not need a live Okta tenant.
+Uses the `test` profile. Throwaway SP keys and mock IdP metadata are generated
+at test runtime by `sso-test-support` (nothing committed under `src/test/resources`).
 
 ## How this differs from `spring-saml`
 

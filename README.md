@@ -45,9 +45,13 @@ spring-boot-sso-learning/          # aggregator / parent POM
 ├── LICENSE
 ├── .github/workflows/ci.yml
 ├── mvnw
+├── sso-test-support/              # generates throwaway SAML keys for tests
 ├── spring-saml/                   # generic SAML 2.0 SP
 └── spring-saml-okta/              # Okta SAML 2.0 SP
 ```
+
+Private keys and certificates are never committed (including under `src/test`).
+Tests generate throwaway material at runtime via `sso-test-support`.
 
 ## License
 

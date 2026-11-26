@@ -20,6 +20,7 @@
     <description>Learning repository for SSO with Spring Boot (SAML, and future OIDC/OAuth2 modules)</description>
 
     <modules>
+        <module>sso-test-support</module>
         <module>spring-saml</module>
         <module>spring-saml-okta</module>
         <!-- Future modules: spring-oidc, spring-keycloak, ... -->

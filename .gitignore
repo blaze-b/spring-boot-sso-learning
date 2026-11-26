@@ -1,8 +1,6 @@
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**
-!**/src/test/**
 
 ### STS ###
 .apt_generated
@@ -38,7 +36,7 @@ build/
 **/local/saml/**
 !**/local/saml/.gitkeep
 
-# Private-key / keystore patterns (after !**/src/main/** so they still apply)
+# Private keys / certs / keystores — never commit anywhere (including tests)
 *.key
 *.key.der
 *.pem
@@ -46,8 +44,5 @@ build/
 *.jks
 *.pfx
 *.crt
-**/src/main/resources/saml/localhost.cert
-
-# Allow committed test fixtures only
-!**/src/test/resources/saml/
-!**/src/test/resources/saml/**
+*.cer
+*.der
