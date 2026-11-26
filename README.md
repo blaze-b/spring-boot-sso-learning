@@ -57,15 +57,25 @@ To use okta with this sample applicatio, you'll have to:
   - *Assertion Encryption* Unencrypted
   - *Single Logout URL* `http://localhost:8081/saml/logout`
   - *SP Issuer* `http://localhost:8081/saml/metadata`
-  - *Signature Certificate* Upload the localhost.cert which is the X509 PEM certificate
+  - *Signature Certificate* Upload your locally generated `localhost.cert` (X509 PEM); see below
   - *Authentication context class* `X509 certificate`
   - *Honor Force Authentication* `No`
   - *SAML Issuer ID* `Default value`
   - *Paramters* Configure some paramters for display
 - Final generated metadata file should be copy pasted in the idp-okta.xml
   
-### Commands to create Self signed certificates
+### Generate a local SAML SP key (do not commit)
 
-- *CMD to create the RSA key*: `openssl genrsa -out localhost.key 2048`
-- *CMD to generate the cer file*: `openssl req -new -x509 -key localhost.key -out localhost.cer -days 365`
-- *CMD to create the der file*: `openssl pkcs8 -topk8 -nocrypt -in localhost.key -outform DER -out localhost.key.der`
+The app loads `classpath:/saml/localhost.cert` and `classpath:/saml/localhost.key.der`. Private keys are gitignored — generate your own before running:
+
+```bash
+mkdir -p src/main/resources/saml
+openssl genrsa -out src/main/resources/saml/localhost.key 2048
+openssl req -new -x509 -key src/main/resources/saml/localhost.key \
+  -out src/main/resources/saml/localhost.cert -days 365 \
+  -subj "/CN=LOCAL"
+openssl pkcs8 -topk8 -nocrypt -in src/main/resources/saml/localhost.key \
+  -outform DER -out src/main/resources/saml/localhost.key.der
+```
+
+Upload `localhost.cert` to your IdP as the SP signature certificate. Never commit `localhost.key`, `localhost.key.der`, or `localhost.cert`.

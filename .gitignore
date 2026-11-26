@@ -33,3 +33,12 @@ build/
 # Application generated files
 *.log
 *.log.gz
+# Local SAML SP private-key material — generate locally, never commit
+# (placed after !**/src/main/** so these patterns still apply)
+*.key
+*.key.der
+*.pem
+*.p12
+*.jks
+*.pfx
+src/main/resources/saml/localhost.cert
